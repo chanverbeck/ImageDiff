@@ -95,14 +95,14 @@ namespace ImageDiff
             int rightStride = rightWidth * rightBytesPerPixel;
             //MessageBox.Show("Width x Height: " + rightWidth.ToString() + "x" + rightHeight.ToString() + " Format: " + rightFrame.Format.ToString());
 
+            byte[] rightBytes = new byte[rightHeight * rightStride];
+            rightFrame.CopyPixels(rightBytes, rightStride, 0);
+
             if (rightFrame.Format != leftFrame.Format)
             {
                 MessageBox.Show("Images not the same format (" + leftFrame.Format.ToString() + "!=" + rightFrame.Format.ToString());
                 return;
             }
-
-            byte[] rightBytes = new byte[leftHeight * leftStride];
-            rightFrame.CopyPixels(rightBytes, rightStride, 0);
 
             int diffHeight = Math.Min(leftHeight, rightHeight);
             int diffWidth = Math.Min(leftWidth, rightWidth);
