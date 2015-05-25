@@ -10,15 +10,22 @@
                 <MenuItem Header="_Exit" Click="Exit_Click"/>
             </MenuItem>
         </Menu>
-        <Grid Background="Blue" Margin="0,23,0,0">
+        <Grid Background="Black" Margin="0,23,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Image x:Name="ImageLeft" Grid.Column="0" />
+            <TextBlock x:Name="TextLeft" Grid.Column="0" Grid.Row="1" Foreground="White" TextAlignment="Center"  />
             <Image x:Name="ImageRight" Grid.Column="1" />
+            <TextBlock x:Name="TextRight" Grid.Column="1" Grid.Row="1" Foreground="White" TextAlignment="Center" />
             <Image x:Name="ImageDiff" Grid.Column="2" />
+            <TextBlock Grid.Column="2" Grid.Row="1" Text="Result" Foreground="White" TextAlignment="Center" />
         </Grid>
 
     </Grid>

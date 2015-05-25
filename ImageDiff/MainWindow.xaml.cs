@@ -27,11 +27,12 @@ namespace ImageDiff
         {
             InitializeComponent();
 
-            InitializeImage(ImageLeft, leftImageSource);
-            InitializeImage(ImageRight, rightImageSource);
+            InitializeImage(ImageLeft, TextLeft, leftImageSource);
+            InitializeImage(ImageRight, TextRight, rightImageSource);
+            CompareImages();
         }
 
-        private void InitializeImage(Image i, string path)
+        private void InitializeImage(Image i, TextBlock block, string path)
         {
             BitmapImage left = new BitmapImage();
             left.BeginInit();
@@ -39,6 +40,8 @@ namespace ImageDiff
             left.EndInit();
 
             i.Source = left;
+
+            block.Text = System.IO.Path.GetFileName(path);
         }
 
         private void Compare_Click(object sender, RoutedEventArgs e)
@@ -50,6 +53,10 @@ namespace ImageDiff
             {
                 leftImageSource = openFileDialog.FileName;
             }
+            else
+            {
+                return;
+            }
 
             openFileDialog.Title = "Right File";
             result = openFileDialog.ShowDialog();
@@ -57,6 +64,13 @@ namespace ImageDiff
             {
                 rightImageSource = openFileDialog.FileName;
             }
+            else
+            {
+                return;
+            }
+
+            InitializeImage(ImageLeft, TextLeft, leftImageSource);
+            InitializeImage(ImageRight, TextRight, rightImageSource);
             CompareImages();
         }
 
@@ -81,32 +95,50 @@ namespace ImageDiff
             int rightStride = rightWidth * rightBytesPerPixel;
             //MessageBox.Show("Width x Height: " + rightWidth.ToString() + "x" + rightHeight.ToString() + " Format: " + rightFrame.Format.ToString());
 
+            if (rightFrame.Format != leftFrame.Format)
+            {
+                MessageBox.Show("Images not the same format (" + leftFrame.Format.ToString() + "!=" + rightFrame.Format.ToString());
+                return;
+            }
+
             byte[] rightBytes = new byte[leftHeight * leftStride];
-            rightFrame.CopyPixels(rightBytes, leftStride, 0);
+            rightFrame.CopyPixels(rightBytes, rightStride, 0);
+
+            int diffHeight = Math.Min(leftHeight, rightHeight);
+            int diffWidth = Math.Min(leftWidth, rightWidth);
+            int diffStride = diffWidth * leftBytesPerPixel;
 
             int[] diffInts = new int[leftHeight * leftStride];
             int maxDiff = 0;
-            for (int i = 0; i < diffInts.Length; ++i)
+            for (int row = 0; row < diffHeight; ++row)
             {
-                diffInts[i] = rightBytes[i] - leftBytes[i];
-                if (diffInts[i] > maxDiff)
+                for (int col = 0; col < diffStride; ++col)
                 {
-                    maxDiff = diffInts[i];
-                }
-                else if (diffInts[i] < -maxDiff)
-                {
-                    maxDiff = (short)-diffInts[i];
+                    diffInts[col + row * diffStride] = rightBytes[col + row*rightStride] - leftBytes[col + row*leftStride];
+                    if (diffInts[col + row * diffStride] > maxDiff)
+                    {
+                        maxDiff = diffInts[col + row * diffStride];
+                    }
+                    else if (diffInts[col + row * diffStride] < -maxDiff)
+                    {
+                        maxDiff = (short)-diffInts[col + row * diffStride];
+                    }
                 }
             }
             //MessageBox.Show("MaxDiff was " + maxDiff.ToString(), "Max Diff");
 
             byte[] diffBytes = new byte[leftHeight * leftStride];
+            double scale = 1;
+            if (maxDiff != 0)
+            {
+                scale = 127.0 / (double)maxDiff;
+            }
             for (int i = 0; i < diffInts.Length; ++i)
             {
-                diffBytes[i] = (byte)((float)diffInts[i] * 127.0 / (float)maxDiff + 128);
+                diffBytes[i] = (byte)((double)diffInts[i] * scale + 128.0);
             }
 
-            ImageDiff.Source = BitmapSource.Create(leftWidth, leftHeight, leftFrame.DpiX, leftFrame.DpiY, leftFrame.Format, null, diffBytes, leftStride);
+            ImageDiff.Source = BitmapSource.Create(diffWidth, diffHeight, leftFrame.DpiX, leftFrame.DpiY, leftFrame.Format, null, diffBytes, diffStride);
         }
 
         private BitmapFrame GetBitmapFrame(string sourceFile)
