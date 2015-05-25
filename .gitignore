@@ -1,0 +1,4 @@
+*.suo
+thumbs.db
+bin/
+obj/
