@@ -41,7 +41,26 @@ namespace ImageDiff
             i.Source = left;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Compare_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
+            openFileDialog.Title = "Left File";
+            bool? result = openFileDialog.ShowDialog();
+            if (result.HasValue && result.Value)
+            {
+                leftImageSource = openFileDialog.FileName;
+            }
+
+            openFileDialog.Title = "Right File";
+            result = openFileDialog.ShowDialog();
+            if (result.HasValue && result.Value)
+            {
+                rightImageSource = openFileDialog.FileName;
+            }
+            CompareImages();
+        }
+
+        private void CompareImages()
         {
             BitmapFrame leftFrame = GetBitmapFrame(leftImageSource);
 
@@ -49,8 +68,8 @@ namespace ImageDiff
             int leftWidth = leftFrame.PixelWidth;
             int leftBytesPerPixel = (leftFrame.Format.BitsPerPixel + 7) / 8;
             int leftStride = leftWidth * leftBytesPerPixel;
-            MessageBox.Show("Width x Height: " + leftWidth.ToString() + "x" + leftHeight.ToString() + " Format: " + leftFrame.Format.ToString());
-            
+            //MessageBox.Show("Width x Height: " + leftWidth.ToString() + "x" + leftHeight.ToString() + " Format: " + leftFrame.Format.ToString());
+
             byte[] leftBytes = new byte[leftHeight * leftStride];
             leftFrame.CopyPixels(leftBytes, leftStride, 0);
 
@@ -60,7 +79,7 @@ namespace ImageDiff
             int rightWidth = rightFrame.PixelWidth;
             int rightBytesPerPixel = (rightFrame.Format.BitsPerPixel + 7) / 8;
             int rightStride = rightWidth * rightBytesPerPixel;
-            MessageBox.Show("Width x Height: " + rightWidth.ToString() + "x" + rightHeight.ToString() + " Format: " + rightFrame.Format.ToString());
+            //MessageBox.Show("Width x Height: " + rightWidth.ToString() + "x" + rightHeight.ToString() + " Format: " + rightFrame.Format.ToString());
 
             byte[] rightBytes = new byte[leftHeight * leftStride];
             rightFrame.CopyPixels(rightBytes, leftStride, 0);
@@ -76,10 +95,10 @@ namespace ImageDiff
                 }
                 else if (diffInts[i] < -maxDiff)
                 {
-                    maxDiff = (short) -diffInts[i];
+                    maxDiff = (short)-diffInts[i];
                 }
             }
-            MessageBox.Show("MaxDiff was " + maxDiff.ToString(), "Max Diff");
+            //MessageBox.Show("MaxDiff was " + maxDiff.ToString(), "Max Diff");
 
             byte[] diffBytes = new byte[leftHeight * leftStride];
             for (int i = 0; i < diffInts.Length; ++i)
@@ -97,6 +116,11 @@ namespace ImageDiff
             BitmapFrame frame = d.Frames[0];
 
             return frame;
+        }
+
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
+            App.Current.Shutdown(0);
         }
     }
 }

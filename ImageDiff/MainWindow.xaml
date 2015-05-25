@@ -5,8 +5,10 @@
         Title="MainWindow" Height="350" Width="525">
     <Grid>
         <Menu Height="23" VerticalAlignment="Top">
-            <System:String>Text</System:String>
-            <Button x:Name="CompareButton" Content="Compare" Width="75" Click="Button_Click"/>
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open" Click="Compare_Click"/>
+                <MenuItem Header="_Exit" Click="Exit_Click"/>
+            </MenuItem>
         </Menu>
         <Grid Background="Blue" Margin="0,23,0,0">
             <Grid.ColumnDefinitions>
