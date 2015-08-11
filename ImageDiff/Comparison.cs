@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media.Imaging;
 using System.IO;
 
@@ -17,6 +12,7 @@ namespace ImageDiff
         public string RightName { private set; get; }
         public BitmapSource Result { private set; get; }
         public string AverageAbsoluteDifference { private set; get; }
+        public string AverageSquareDifference { private set; get; }
 
         public Comparison(string leftFile, string rightFile)
         {
@@ -36,7 +32,6 @@ namespace ImageDiff
             int leftWidth = leftFrame.PixelWidth;
             int leftBytesPerPixel = (leftFrame.Format.BitsPerPixel + 7) / 8;
             int leftStride = leftWidth * leftBytesPerPixel;
-            //MessageBox.Show("Width x Height: " + leftWidth.ToString() + "x" + leftHeight.ToString() + " Format: " + leftFrame.Format.ToString());
 
             byte[] leftBytes = new byte[leftHeight * leftStride];
             leftFrame.CopyPixels(leftBytes, leftStride, 0);
@@ -47,15 +42,13 @@ namespace ImageDiff
             int rightWidth = rightFrame.PixelWidth;
             int rightBytesPerPixel = (rightFrame.Format.BitsPerPixel + 7) / 8;
             int rightStride = rightWidth * rightBytesPerPixel;
-            //MessageBox.Show("Width x Height: " + rightWidth.ToString() + "x" + rightHeight.ToString() + " Format: " + rightFrame.Format.ToString());
 
             byte[] rightBytes = new byte[rightHeight * rightStride];
             rightFrame.CopyPixels(rightBytes, rightStride, 0);
 
             if (rightFrame.Format != leftFrame.Format)
             {
-                MessageBox.Show("Images not the same format (" + leftFrame.Format.ToString() + "!=" + rightFrame.Format.ToString());
-                return;
+                throw new InvalidDataException("Images not the same format(" + leftFrame.Format.ToString() + " != " + rightFrame.Format.ToString());
             }
 
             int diffHeight = Math.Min(leftHeight, rightHeight);
@@ -64,6 +57,7 @@ namespace ImageDiff
 
             int pixelCount = diffHeight * diffStride;
             double totalAbsoluteDifference = 0;
+            double totalSquareDifference = 0;
 
             int[] diffInts = new int[leftHeight * leftStride];
             int maxDiff = 0;
@@ -74,6 +68,7 @@ namespace ImageDiff
                     int difference = rightBytes[col + row * rightStride] - leftBytes[col + row * leftStride];
 
                     totalAbsoluteDifference += Math.Abs(difference);
+                    totalSquareDifference += difference * difference;
 
                     diffInts[col + row * diffStride] = difference;
                     if (diffInts[col + row * diffStride] > maxDiff)
@@ -86,7 +81,6 @@ namespace ImageDiff
                     }
                 }
             }
-            //MessageBox.Show("MaxDiff was " + maxDiff.ToString(), "Max Diff");
 
             byte[] diffBytes = new byte[leftHeight * leftStride];
             double scale = 1;
@@ -100,6 +94,7 @@ namespace ImageDiff
             }
 
             AverageAbsoluteDifference = (totalAbsoluteDifference / (double)pixelCount).ToString();
+            AverageSquareDifference = (totalSquareDifference / (double)pixelCount).ToString();
             Result = BitmapSource.Create(diffWidth, diffHeight, leftFrame.DpiX, leftFrame.DpiY, leftFrame.Format, null, diffBytes, diffStride);
         }
 
